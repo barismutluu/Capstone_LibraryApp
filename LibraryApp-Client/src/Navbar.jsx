@@ -4,14 +4,14 @@ export default function Navbar() {
   return (
     <nav className="nav">
       <Link to="/" className="site-title">
-        Site Name
+        LibraryApp
       </Link>
       <ul>
-        <CustomLink to="/publisher">Publisher</CustomLink>
-        <CustomLink to="/author">Author</CustomLink>
-        <CustomLink to="/category">Category</CustomLink>
-        <CustomLink to="/borrowing">Borrowing</CustomLink>
-        <CustomLink to="/book">Book</CustomLink>
+        <CustomLink to="/author">Yazarlar</CustomLink>
+        <CustomLink to="/publisher">Yayıncılar</CustomLink>
+        <CustomLink to="/category">Kategoriler</CustomLink>
+        <CustomLink to="/book">Kitaplar</CustomLink>
+        <CustomLink to="/borrowing">Ödünç Alma Kayıtları</CustomLink>
       </ul>
     </nav>
   );
