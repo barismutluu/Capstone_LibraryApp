@@ -8,8 +8,10 @@ body {
 }
 
 .container {
-  margin: "1rem";
-  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto; /* Sayfayı yatayda ortalar */
+  padding: 1rem; /* Sayfanın kenarlarında boşluk sağlar */
+  text-align: center; /* İçeriği ortalar */
 }
 
 .site-title {
