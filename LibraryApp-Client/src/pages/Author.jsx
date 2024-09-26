@@ -10,6 +10,8 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
@@ -23,9 +25,10 @@ export default function Author() {
   const [birthDate, setBirthDate] = useState("");
   const [country, setCountry] = useState("");
   const [editingAuthor, setEditingAuthor] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
 
   useEffect(() => {
-    // API isteğini ortam değişkeni ile yapıyoruz
     axios
       .get(`${API_BASE_URL}/api/v1/authors`)
       .then((response) => {
@@ -62,6 +65,11 @@ export default function Author() {
           setName("");
           setBirthDate("");
           setCountry("");
+          setSnackbarMessage("Yazar başarıyla güncellendi!");
+          setOpenSnackbar(true);
+        })
+        .catch((error) => {
+          console.error("Yazar güncellenirken hata oluştu:", error);
         });
     } else {
       axios
@@ -71,6 +79,11 @@ export default function Author() {
           setName("");
           setBirthDate("");
           setCountry("");
+          setSnackbarMessage("Yazar başarıyla eklendi!");
+          setOpenSnackbar(true);
+        })
+        .catch((error) => {
+          console.error("Yazar eklenirken hata oluştu:", error);
         });
     }
   };
@@ -83,9 +96,20 @@ export default function Author() {
   };
 
   const handleDelete = (id) => {
-    axios.delete(`${API_BASE_URL}/api/v1/authors/${id}`).then(() => {
-      setAuthors(authors.filter((author) => author.id !== id));
-    });
+    axios
+      .delete(`${API_BASE_URL}/api/v1/authors/${id}`)
+      .then(() => {
+        setAuthors(authors.filter((author) => author.id !== id));
+        setSnackbarMessage("Yazar başarıyla silindi!");
+        setOpenSnackbar(true);
+      })
+      .catch((error) => {
+        console.error("Yazar silinirken hata oluştu:", error);
+      });
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -155,6 +179,21 @@ export default function Author() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar Bileşeni */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

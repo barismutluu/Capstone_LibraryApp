@@ -15,6 +15,8 @@ import {
   InputLabel,
   FormControl,
   Grid,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
@@ -30,6 +32,8 @@ export default function Borrowing() {
   const [bookId, setBookId] = useState("");
   const [books, setBooks] = useState([]);
   const [editingBorrowing, setEditingBorrowing] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
 
   useEffect(() => {
     fetchBorrowings();
@@ -57,7 +61,6 @@ export default function Borrowing() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Seçilen kitabın bilgilerini alıyoruz
     const selectedBook = books.find((book) => book.id === bookId);
 
     const borrowingData = {
@@ -70,26 +73,27 @@ export default function Borrowing() {
         publicationYear: selectedBook.publicationYear,
         stock: selectedBook.stock,
       },
-      ...(editingBorrowing && { returnDate }), // Güncelleme için returnDate ekleniyor
+      ...(editingBorrowing && { returnDate }),
     };
 
     try {
       if (editingBorrowing) {
-        // Güncelleme işlemi
         await axios.put(
           `${API_BASE_URL}/api/v1/borrows/${editingBorrowing.id}`,
           borrowingData
         );
-        fetchBorrowings(); // Verileri güncellemek için tekrar API çağrısı yap
+        fetchBorrowings();
+        setSnackbarMessage("Ödünç alma işlemi başarıyla güncellendi!");
       } else {
-        // Yeni ekleme işlemi
         const response = await axios.post(
           `${API_BASE_URL}/api/v1/borrows`,
           borrowingData
         );
         setBorrowings([...borrowings, response.data]);
+        setSnackbarMessage("Ödünç alma işlemi başarıyla eklendi!");
       }
       resetForm();
+      setOpenSnackbar(true); // İşlem sonrası Snackbar açılıyor
     } catch (error) {
       console.error("Borrowing kaydedilemedi:", error);
     }
@@ -107,29 +111,35 @@ export default function Borrowing() {
   const handleEdit = (borrowing) => {
     setEditingBorrowing(borrowing);
     setBorrowerName(borrowing.borrowerName || "");
-    setBorrowerMail(borrowerMail.borrowerMail || "");
+    setBorrowerMail(borrowing.borrowerMail || "");
     setBorrowingDate(borrowing.borrowingDate || "");
     setReturnDate(borrowing.returnDate || "");
-    setBookId(borrowing.book?.id || ""); // Kitap bilgisi formda güncelleniyor
+    setBookId(borrowing.book?.id || "");
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_BASE_URL}/api/v1/borrows/${id}`);
       setBorrowings(borrowings.filter((borrowing) => borrowing.id !== id));
+      setSnackbarMessage("Ödünç alma işlemi başarıyla silindi!");
+      setOpenSnackbar(true); // Silme işlemi sonrası Snackbar açılıyor
     } catch (error) {
       console.error("Borrowing silinemedi:", error);
     }
   };
 
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
     <div>
-      <h2>Borrowing Management</h2>
+      <h1>Kitap Alma</h1>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Borrower Name"
+              label="Ödünç Alan Kişinin Adı"
               value={borrowerName}
               onChange={(e) => setBorrowerName(e.target.value)}
               fullWidth
@@ -138,7 +148,7 @@ export default function Borrowing() {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Borrower Email"
+              label="Ödünç Alan Kişinin E-Posta Adresi"
               value={borrowerMail}
               onChange={(e) => setBorrowerMail(e.target.value)}
               fullWidth
@@ -147,7 +157,7 @@ export default function Borrowing() {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Borrowing Date"
+              label="Ödünç Alma Tarihi"
               type="date"
               value={borrowingDate}
               onChange={(e) => setBorrowingDate(e.target.value)}
@@ -156,7 +166,6 @@ export default function Borrowing() {
               required
             />
           </Grid>
-          {/* returnDate alanı sadece güncelleme işleminde gösterilecek */}
           {editingBorrowing && (
             <Grid item xs={12} sm={6}>
               <TextField
@@ -171,7 +180,7 @@ export default function Borrowing() {
           )}
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel>Book</InputLabel>
+              <InputLabel>Kitap Bilgisi</InputLabel>
               <Select
                 value={bookId}
                 onChange={(e) => setBookId(e.target.value)}
@@ -179,7 +188,7 @@ export default function Borrowing() {
               >
                 {books.map((book) => (
                   <MenuItem key={book.id} value={book.id}>
-                    {book.name} by {book.author.name}
+                    {book.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -187,28 +196,30 @@ export default function Borrowing() {
           </Grid>
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
-              {editingBorrowing ? "Update Borrowing" : "Add Borrowing"}
+              {editingBorrowing ? "Güncelle" : "Kaydet"}
             </Button>
           </Grid>
         </Grid>
       </form>
 
-      <h3>Existing Borrowings</h3>
+      <h3>Kitap Alan Kişi Bilgileri</h3>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Borrower Name</TableCell>
-              <TableCell>Book</TableCell>
-              <TableCell>Borrowing Date</TableCell>
-              <TableCell>Return Date</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Adı</TableCell>
+              <TableCell> E-Posta</TableCell>
+              <TableCell>Kitap Adı</TableCell>
+              <TableCell>Alım Tarihi</TableCell>
+              <TableCell>Iade Tarihi</TableCell>
+              <TableCell>İşlemler</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {borrowings.map((borrowing) => (
               <TableRow key={borrowing.id}>
                 <TableCell>{borrowing.borrowerName}</TableCell>
+                <TableCell>{borrowing.borrowerMail}</TableCell>
                 <TableCell>{borrowing.book.name}</TableCell>
                 <TableCell>{borrowing.borrowingDate}</TableCell>
                 <TableCell>{borrowing.returnDate || "N/A"}</TableCell>
@@ -225,6 +236,21 @@ export default function Borrowing() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar Bileşeni */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

@@ -10,6 +10,8 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
@@ -22,6 +24,8 @@ export default function Category() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
 
   useEffect(() => {
     // API isteği ile kategorileri alıyoruz
@@ -45,21 +49,30 @@ export default function Category() {
     e.preventDefault();
 
     if (editingCategory) {
+      // Güncelleme işlemi için hem isim hem açıklama gönderiyoruz.
+      const updatedCategory = {
+        name: name || editingCategory.name, // Eğer isim boşsa, mevcut ismi kullan
+        description,
+      };
+
       // Kategori güncelleme işlemi
       axios
-        .put(`${API_BASE_URL}/api/v1/categories/${editingCategory.id}`, {
-          name,
-          description,
-        })
+        .put(
+          `${API_BASE_URL}/api/v1/categories/${editingCategory.id}`,
+          updatedCategory
+        )
         .then((response) => {
           setCategories(
             categories.map((category) =>
               category.id === editingCategory.id ? response.data : category
             )
           );
-          setEditingCategory(null);
-          setName("");
-          setDescription("");
+          setSnackbarMessage("Kategori başarıyla güncellendi!");
+          setOpenSnackbar(true); // Güncelleme sonrası snackbar açılıyor
+          resetForm();
+        })
+        .catch((error) => {
+          console.error("Kategori güncellenemedi:", error);
         });
     } else {
       // Yeni kategori ekleme işlemi
@@ -67,10 +80,20 @@ export default function Category() {
         .post(`${API_BASE_URL}/api/v1/categories`, { name, description })
         .then((response) => {
           setCategories([...categories, response.data]);
-          setName("");
-          setDescription("");
+          setSnackbarMessage("Kategori başarıyla eklendi!");
+          setOpenSnackbar(true); // Ekleme sonrası snackbar açılıyor
+          resetForm();
+        })
+        .catch((error) => {
+          console.error("Kategori eklenemedi:", error);
         });
     }
+  };
+
+  const resetForm = () => {
+    setEditingCategory(null);
+    setName("");
+    setDescription("");
   };
 
   const handleEdit = (category) => {
@@ -81,9 +104,20 @@ export default function Category() {
 
   const handleDelete = (id) => {
     // Kategori silme işlemi
-    axios.delete(`${API_BASE_URL}/api/v1/categories/${id}`).then(() => {
-      setCategories(categories.filter((category) => category.id !== id));
-    });
+    axios
+      .delete(`${API_BASE_URL}/api/v1/categories/${id}`)
+      .then(() => {
+        setCategories(categories.filter((category) => category.id !== id));
+        setSnackbarMessage("Kategori başarıyla silindi!");
+        setOpenSnackbar(true); // Silme sonrası snackbar açılıyor
+      })
+      .catch((error) => {
+        console.error("Kategori silinemedi:", error);
+      });
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -102,7 +136,7 @@ export default function Category() {
           label="Kategori İsmi"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          required
+          required={!editingCategory} // Sadece ekleme sırasında zorunlu
         />
         <TextField
           label="Açıklama"
@@ -143,6 +177,21 @@ export default function Category() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar Bileşeni */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

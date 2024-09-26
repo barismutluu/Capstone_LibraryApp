@@ -16,6 +16,8 @@ import {
   FormControl,
   Checkbox,
   ListItemText,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
@@ -37,13 +39,14 @@ export default function Book() {
   const [editingBook, setEditingBook] = useState(null);
   const [errorPublicationYear, setErrorPublicationYear] = useState("");
   const [errorStock, setErrorStock] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
 
   useEffect(() => {
     fetchAllData();
   }, []);
 
   const fetchAllData = () => {
-    // Kitapları, yazarları, yayıncıları ve kategorileri güncelle
     axios.get(`${API_BASE_URL}/api/v1/books`).then((response) => {
       if (Array.isArray(response.data)) {
         setBooks(response.data);
@@ -66,7 +69,6 @@ export default function Book() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Yayın yılı ve stok doğrulaması
     if (!publicationYear || isNaN(publicationYear)) {
       setErrorPublicationYear("Yayın yılı bir sayı olmalıdır.");
       return;
@@ -86,7 +88,6 @@ export default function Book() {
     };
 
     if (editingBook) {
-      // Kitap güncelleme işlemi
       axios
         .put(`${API_BASE_URL}/api/v1/books/${editingBook.id}`, bookData)
         .then((response) => {
@@ -96,14 +97,17 @@ export default function Book() {
             )
           );
           resetForm();
-          fetchAllData(); // Verileri güncelle
+          fetchAllData();
+          setSnackbarMessage("Kitap başarıyla güncellendi!");
+          setOpenSnackbar(true);
         });
     } else {
-      // Yeni kitap ekleme işlemi
       axios.post(`${API_BASE_URL}/api/v1/books`, bookData).then((response) => {
         setBooks([...books, response.data]);
         resetForm();
-        fetchAllData(); // Verileri güncelle
+        fetchAllData();
+        setSnackbarMessage("Kitap başarıyla eklendi!");
+        setOpenSnackbar(true);
       });
     }
   };
@@ -133,7 +137,13 @@ export default function Book() {
   const handleDelete = (id) => {
     axios.delete(`${API_BASE_URL}/api/v1/books/${id}`).then(() => {
       setBooks(books.filter((book) => book.id !== id));
+      setSnackbarMessage("Kitap başarıyla silindi!");
+      setOpenSnackbar(true);
     });
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
   };
 
   const handleCategoryChange = (event) => {
@@ -295,6 +305,21 @@ export default function Book() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar Bileşeni */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

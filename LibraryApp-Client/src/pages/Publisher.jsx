@@ -10,6 +10,8 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
@@ -24,6 +26,8 @@ export default function Publisher() {
   const [address, setAddress] = useState("");
   const [editingPublisher, setEditingPublisher] = useState(null);
   const [error, setError] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
 
   useEffect(() => {
     // API isteği ile yayıncıları alıyoruz
@@ -68,10 +72,12 @@ export default function Publisher() {
               publisher.id === editingPublisher.id ? response.data : publisher
             )
           );
-          setEditingPublisher(null);
-          setName("");
-          setEstablishmentYear("");
-          setAddress("");
+          setSnackbarMessage("Yayıncı başarıyla güncellendi!");
+          setOpenSnackbar(true); // Güncelleme sonrası Snackbar açılıyor
+          resetForm();
+        })
+        .catch((error) => {
+          console.error("Yayıncı güncellenemedi:", error);
         });
     } else {
       // Yeni yayıncı ekleme işlemi
@@ -83,11 +89,21 @@ export default function Publisher() {
         })
         .then((response) => {
           setPublishers([...publishers, response.data]);
-          setName("");
-          setEstablishmentYear("");
-          setAddress("");
+          setSnackbarMessage("Yayıncı başarıyla eklendi!");
+          setOpenSnackbar(true); // Ekleme sonrası Snackbar açılıyor
+          resetForm();
+        })
+        .catch((error) => {
+          console.error("Yayıncı eklenemedi:", error);
         });
     }
+  };
+
+  const resetForm = () => {
+    setEditingPublisher(null);
+    setName("");
+    setEstablishmentYear("");
+    setAddress("");
   };
 
   const handleEdit = (publisher) => {
@@ -99,9 +115,20 @@ export default function Publisher() {
 
   const handleDelete = (id) => {
     // Yayıncı silme işlemi
-    axios.delete(`${API_BASE_URL}/api/v1/publishers/${id}`).then(() => {
-      setPublishers(publishers.filter((publisher) => publisher.id !== id));
-    });
+    axios
+      .delete(`${API_BASE_URL}/api/v1/publishers/${id}`)
+      .then(() => {
+        setPublishers(publishers.filter((publisher) => publisher.id !== id));
+        setSnackbarMessage("Yayıncı başarıyla silindi!");
+        setOpenSnackbar(true); // Silme sonrası Snackbar açılıyor
+      })
+      .catch((error) => {
+        console.error("Yayıncı silinemedi:", error);
+      });
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -171,6 +198,21 @@ export default function Publisher() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar Bileşeni */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
