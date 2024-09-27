@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+// React'ten gerekli hook'ları (useState, useEffect) içe aktarıyoruz.
+
 import {
   TextField,
   Button,
@@ -19,65 +21,129 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+// Material-UI'den gerekli bileşenleri içe aktarıyoruz. Bu bileşenler kullanıcı arayüzünü oluşturmak için kullanılıyor.
+
 import { Edit, Delete } from "@mui/icons-material";
+// Düzenle ve Sil ikonlarını içe aktarıyoruz.
+
 import axios from "axios";
+// Axios'u API isteklerini gerçekleştirmek için içe aktarıyoruz.
 
 // API base URL'ini ortam değişkenlerinden alıyoruz
 const API_BASE_URL = import.meta.env.VITE_APP_BASE_URL;
+// API URL'ini ortam değişkenlerinden alıyoruz. Bu, farklı ortamlar için URL'lerin kolayca değiştirilmesini sağlar.
 
 export default function Book() {
+  // Book bileşenini tanımlıyoruz.
   const [books, setBooks] = useState([]);
+  // books: Kitapların listesini tutar.
+  // setBooks: Kitap listesini güncellemek için kullanılır.
+
   const [name, setName] = useState("");
+  // name: Kitabın adı için form girdi değerini tutar.
+  // setName: Kitap adını güncellemek için kullanılır.
+
   const [publicationYear, setPublicationYear] = useState("");
+  // publicationYear: Yayın yılını tutar.
+  // setPublicationYear: Yayın yılını güncellemek için kullanılır.
+
   const [stock, setStock] = useState("");
+  // stock: Kitabın stok miktarını tutar.
+  // setStock: Stok miktarını güncellemek için kullanılır.
+
   const [authorId, setAuthorId] = useState("");
+  // authorId: Kitabın yazarının ID'sini tutar.
+  // setAuthorId: Yazar ID'sini güncellemek için kullanılır.
+
   const [publisherId, setPublisherId] = useState("");
+  // publisherId: Kitabın yayıncısının ID'sini tutar.
+  // setPublisherId: Yayıncı ID'sini güncellemek için kullanılır.
+
   const [selectedCategories, setSelectedCategories] = useState([]);
+  // selectedCategories: Kitabın kategorilerinin ID'lerini tutar.
+  // setSelectedCategories: Kategori ID'lerini güncellemek için kullanılır.
+
   const [authors, setAuthors] = useState([]);
+  // authors: Yazarlar listesini tutar.
+  // setAuthors: Yazarlar listesini güncellemek için kullanılır.
+
   const [publishers, setPublishers] = useState([]);
+  // publishers: Yayıncılar listesini tutar.
+  // setPublishers: Yayıncılar listesini güncellemek için kullanılır.
+
   const [categories, setCategories] = useState([]);
+  // categories: Kategoriler listesini tutar.
+  // setCategories: Kategoriler listesini güncellemek için kullanılır.
+
   const [editingBook, setEditingBook] = useState(null);
+  // editingBook: Düzenlenen kitabın bilgilerini tutar.
+  // Bu sayede mevcut bir kitabı düzenleyip düzenlemediğimizi anlayabiliriz.
+
   const [errorPublicationYear, setErrorPublicationYear] = useState("");
+  // errorPublicationYear: Yayın yılı ile ilgili hata mesajını tutar.
+  // setErrorPublicationYear: Yayın yılı hatasını güncellemek için kullanılır.
+
   const [errorStock, setErrorStock] = useState("");
-  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar kontrolü
-  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar mesajı
+  // errorStock: Stok ile ilgili hata mesajını tutar.
+  // setErrorStock: Stok hatasını güncellemek için kullanılır.
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  // openSnackbar: Snackbar'ı açıp kapatma kontrolünü tutar.
+
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  // snackbarMessage: Snackbar üzerinde gösterilecek mesajı tutar.
 
   useEffect(() => {
+    // Bileşen yüklendiğinde tüm verileri almak için kullanılıyor.
     fetchAllData();
   }, []);
 
   const fetchAllData = () => {
+    // Tüm kitap, yazar, yayıncı ve kategori verilerini almak için API istekleri yapıyoruz.
     axios.get(`${API_BASE_URL}/api/v1/books`).then((response) => {
       if (Array.isArray(response.data)) {
         setBooks(response.data);
+        // Kitaplar listesini güncelliyoruz.
       } else {
         console.error("Beklenen formatta veri gelmedi:", response.data);
         setBooks([]);
+        // Beklenen formatta veri gelmezse boş liste atıyoruz.
       }
     });
+
     axios
       .get(`${API_BASE_URL}/api/v1/authors`)
       .then((response) => setAuthors(response.data));
+    // Yazarları API'den alıp yazarlar listesini güncelliyoruz.
+
     axios
       .get(`${API_BASE_URL}/api/v1/publishers`)
       .then((response) => setPublishers(response.data));
+    // Yayıncıları API'den alıp yayıncılar listesini güncelliyoruz.
+
     axios
       .get(`${API_BASE_URL}/api/v1/categories`)
       .then((response) => setCategories(response.data));
+    // Kategorileri API'den alıp kategoriler listesini güncelliyoruz.
   };
 
   const handleSubmit = (e) => {
+    // Form gönderildiğinde çalışır.
     e.preventDefault();
+    // Formun varsayılan davranışını (sayfanın yenilenmesi) engelliyoruz.
 
     if (!publicationYear || isNaN(publicationYear)) {
+      // Yayın yılının bir sayı olup olmadığını kontrol ediyoruz.
       setErrorPublicationYear("Yayın yılı bir sayı olmalıdır.");
       return;
     }
     if (!stock || isNaN(stock)) {
+      // Stok miktarının bir sayı olup olmadığını kontrol ediyoruz.
       setErrorStock("Stok bir sayı olmalıdır.");
       return;
     }
 
+    // Kitap verilerini topluyoruz.
     const bookData = {
       name,
       publicationYear,
@@ -88,9 +154,11 @@ export default function Book() {
     };
 
     if (editingBook) {
+      // Eğer düzenleme yapılıyorsa
       axios
         .put(`${API_BASE_URL}/api/v1/books/${editingBook.id}`, bookData)
         .then((response) => {
+          // Güncellenen kitap bilgilerini listede güncelliyoruz.
           setBooks(
             books.map((book) =>
               book.id === editingBook.id ? response.data : book
@@ -102,7 +170,9 @@ export default function Book() {
           setOpenSnackbar(true);
         });
     } else {
+      // Yeni kitap ekleniyorsa
       axios.post(`${API_BASE_URL}/api/v1/books`, bookData).then((response) => {
+        // Yeni kitabı mevcut listeye ekliyoruz.
         setBooks([...books, response.data]);
         resetForm();
         fetchAllData();
@@ -113,6 +183,7 @@ export default function Book() {
   };
 
   const resetForm = () => {
+    // Formu sıfırlamak için kullanılır.
     setName("");
     setPublicationYear("");
     setStock("");
@@ -125,6 +196,7 @@ export default function Book() {
   };
 
   const handleEdit = (book) => {
+    // Düzenleme işlemini başlatıyoruz.
     setEditingBook(book);
     setName(book.name);
     setPublicationYear(book.publicationYear);
@@ -132,9 +204,11 @@ export default function Book() {
     setAuthorId(book.author.id);
     setPublisherId(book.publisher.id);
     setSelectedCategories(book.categories.map((category) => category.id));
+    // Formu düzenlenen kitabın bilgileriyle dolduruyoruz.
   };
 
   const handleDelete = (id) => {
+    // Kitap silme işlemi
     axios.delete(`${API_BASE_URL}/api/v1/books/${id}`).then(() => {
       setBooks(books.filter((book) => book.id !== id));
       setSnackbarMessage("Kitap başarıyla silindi!");
@@ -143,10 +217,12 @@ export default function Book() {
   };
 
   const handleSnackbarClose = () => {
+    // Snackbar kapatma işlemi
     setOpenSnackbar(false);
   };
 
   const handleCategoryChange = (event) => {
+    // Kategorilerin seçimini güncellemek için kullanılır.
     setSelectedCategories(event.target.value);
   };
 
@@ -162,6 +238,7 @@ export default function Book() {
           flexDirection: "column",
         }}
       >
+        {/* Kitap ekleme/düzenleme formu */}
         <TextField
           label="Kitap İsmi"
           value={name}
@@ -262,10 +339,12 @@ export default function Book() {
 
         <Button type="submit" variant="contained" color="primary">
           {editingBook ? "Güncelle" : "Ekle"}
+          {/* Eğer düzenleme yapılıyorsa "Güncelle", yoksa "Ekle" yazısı gösteriliyor */}
         </Button>
       </form>
 
       <TableContainer component={Paper}>
+        {/* Kitapların listelendiği tablo */}
         <Table>
           <TableHead>
             <TableRow>

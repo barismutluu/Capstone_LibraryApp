@@ -1,19 +1,30 @@
 import React from "react";
+// React bileşenlerini kullanmak için React kütüphanesini içe aktarıyoruz.
+
 import { Typography, Container, Box } from "@mui/material";
+// Material-UI'den çeşitli bileşenleri içe aktarıyoruz. Typography, metin stilleri için; Container, içerik yerleşimi için; Box ise esnek düzenlemeler için kullanılır.
+
 import backgroundImage from "../assets/LibraryApp.jpg";
+// Arka plan resmini içe aktarıyoruz.
+
 import "./Home.css"; // CSS dosyasını da import ediyoruz
+// CSS dosyasını projeye dahil ediyoruz. Bu dosya sayfa düzeni için gerekli stil kurallarını içeriyor.
 
 const HomePage = () => {
+  // HomePage bileşenini tanımlıyoruz.
   return (
     <Container className="homepage-container">
+      {/* Sayfanın ana konteynırı. CSS dosyasındaki "homepage-container" sınıfı uygulanmış */}
       <div className="overlay">
-        {" "}
-        {/* Arka planda sadece görsel için bir katman */}
+        {/* Arka planda bulanıklık efekti için eklenmiş bir katman */}
         <Box textAlign="center" mt={5}>
+          {/* İçerik için kullanılan bir kutu bileşeni. Tüm içerik yatayda ortalanmış ve yukarıdan biraz boşluk eklenmiş. */}
           <Typography variant="h2" gutterBottom>
+            {/* Başlık olarak kullanılan bir bileşen. H2 tipinde ve altında boşluk bırakacak şekilde (gutterBottom). */}
             LibraryApp'e Hoşgeldiniz
           </Typography>
           <Typography variant="h6" color="white">
+            {/* Açıklama metni. H6 tipinde ve rengi beyaz olarak ayarlanmış. */}
             Kitaplarınızı, yazarlarınızı, yayınevlerinizi ve daha fazlasını tek
             bir yerde yönetin.
           </Typography>
@@ -24,3 +35,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+// Bu bileşeni diğer dosyalarda kullanabilmek için dışa aktarıyoruz.
