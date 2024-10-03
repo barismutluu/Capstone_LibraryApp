@@ -35,7 +35,7 @@ Proje aşağıdaki sayfalardan oluşmaktadır ve her bir sayfada CRUD işlemleri
 
 1. Bu repoyu klonlayın:
    ```bash
-   git clone https://github.com/barismutluu/Capstone_LibraryApp
+   git clone https://github.com/barismutluu/LibraryApp
    ```
 2. Gerekli bağımlılıkları yüklemek için proje dizininde şu komutu çalıştırın:
 
